@@ -2,11 +2,12 @@ FROM amazonlinux:latest
 
 ARG LIBS=/usr/lib64
 ARG OUT=/root/layers
+ARG NODE_VERSION=10
 
 # set up container
 RUN yum -y update
 RUN yum -y groupinstall "Development Tools"
-RUN curl --silent --location https://rpm.nodesource.com/setup_10.x | bash -
+RUN curl --silent --location https://rpm.nodesource.com/setup_${NODE_VERSION}.x | bash -
 RUN yum install -y nodejs cairo cairo-devel cairomm-devel libjpeg-turbo-devel pango pango-devel pangomm pangomm-devel giflib-devel
 
 # will be created and become working dir
