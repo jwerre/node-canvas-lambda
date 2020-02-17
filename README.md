@@ -75,6 +75,8 @@ You'll need to install Docker on your local system if you don't have it then run
 docker build -t canvas-layers .
 docker run -d --rm --mount type=bind,source="$(pwd)",target=/out canvas-layers /out/layers.zip /root/layers
 ```
+
+By default the Dockerfile installs and builds NPM dependencies against Node 10. If you would like to use another version of Node, append `--build-arg NODE_VERSION=<YOUR NODE VERSION>` to the above `docker build` command.
 <!-- 
 ```zsh
 docker run -it amazonlinux:latest /bin/bash
