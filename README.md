@@ -16,7 +16,6 @@ A node-canvas layer for AWS Lambda
 1.  Select your function in the function list
 1.  Click **Layers** in the Designer panel
 1.  In the Layers panel click **Add a layer**.
-1.  In the Layers panel click **Add a layer**.
 1.  Choose **Select from list of runtime compatible layers**, select the layer Name and Version and click **Add**.
 
 ### AWS CLI
