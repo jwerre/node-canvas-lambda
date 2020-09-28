@@ -2,37 +2,40 @@ FROM amazonlinux:latest
 
 ARG LIBS=/usr/lib64
 ARG OUT=/root/layers
-ARG NODE_VERSION=10
+ARG NODE_VERSION=12
 
 # set up container
-RUN yum -y update
-RUN yum -y groupinstall "Development Tools"
-RUN curl --silent --location https://rpm.nodesource.com/setup_${NODE_VERSION}.x | bash -
-RUN yum install -y nodejs cairo cairo-devel cairomm-devel libjpeg-turbo-devel pango pango-devel pangomm pangomm-devel giflib-devel
+RUN yum -y update \
+&& yum -y groupinstall "Development Tools" \
+&& curl --silent --location https://rpm.nodesource.com/setup_${NODE_VERSION}.x | bash - \
+&& yum install -y nodejs gcc-c++ cairo-devel libjpeg-turbo-devel pango-devel giflib-devel
+# && yum install -y nodejs cairo cairo-devel cairomm-devel libjpeg-turbo-devel pango pango-devel pangomm pangomm-devel giflib-devel
+
+RUN node --version
 
 # will be created and become working dir
 WORKDIR $OUT/nodejs
 
-RUN npm install canvas@next
-RUN npm install chartjs-plugin-datalabels chartjs-node-canvas chart.js
-
-
-# RUN ls -al $LIBS
+RUN npm install canvas@next \
+chartjs-plugin-datalabels \
+chartjs-node-canvas \
+chart.js
 
 # will be created and become working dir
 WORKDIR $OUT/lib
-# gather missing libraries
-RUN cp $LIBS/libblkid.so.1 .
-RUN cp $LIBS/libmount.so.1 .
-RUN cp $LIBS/libuuid.so.1 .
-RUN cp $LIBS/libfontconfig.so.1 .
-RUN cp $LIBS/libpixman-1.so.0 .
 
-# RUN ls -al
+# gather missing libraries
+RUN cp $LIBS/libblkid.so.1 . \
+&& cp $LIBS/libmount.so.1 . \
+&& cp $LIBS/libuuid.so.1 . \
+&& cp $LIBS/libfontconfig.so.1 . \
+&& cp $LIBS/libpixman-1.so.0 .
+
 
 WORKDIR $OUT
-RUN zip -r -9 canvas-layer.zip nodejs
-RUN zip -r -9 canvas-lib64-layer.zip lib
+
+RUN zip -r -9 node${NODE_VERSION}_canvas_layer.zip nodejs \
+&& zip -r -9 node${NODE_VERSION}_canvas_lib64_layer.zip lib
 
 ENTRYPOINT ["zip","-r","-9"]
 CMD ["/out/layers.zip", $OUT]
