@@ -1,0 +1,99 @@
+version: 0.2
+
+env:
+  variables:
+    LIBS: /usr/lib64
+    NODE_VERSION: 14
+    # Somewhat newer than v2.7.0 in order to get new Node 14 support:
+    CANVAS_VERSION: 12e671decd5bce8cca6040643117249d6b15cea7
+    
+phases:
+  install:
+    commands:
+      - yum -y update
+      - yum -y install gcc-c++ cairo-devel libjpeg-turbo-devel pango-devel giflib-devel librsvg2-devel gdk-pixbuf2-devel
+      - n "${NODE_VERSION}"
+      - node -v
+  build:
+    commands:
+      # Fetch full source, package it:
+      - git clone https://github.com/Automattic/node-canvas.git
+      - cd node-canvas
+      - git checkout "${CANVAS_VERSION}"
+      - npm pack
+      - cd ../
+      
+      # Build and install that module into nodejs/node_modules for deployment
+      - mkdir nodejs
+      - cd nodejs
+      - npm install ../node-canvas/canvas-*.tgz --ignore-scripts
+      - cd node_modules/canvas/
+      - ../\@mapbox/node-pre-gyp/bin/node-pre-gyp rebuild --build-from-source
+      - ldd build/Release/canvas.node
+      - cd ../../../
+      
+      # Make a copy of the built module we can run tests on
+      - cp -a nodejs/node_modules/canvas canvas-test
+      # Add back the tests and examples folders from the source checkout:
+      - cp -a node-canvas/test canvas-test/test
+      - cp -a node-canvas/examples canvas-test/examples
+      - cd canvas-test
+      # Add devDependencies etc
+      - npm install --ignore-scripts
+      # Finally we can run the testsuite
+      - npm test
+      - cd ../
+
+  post_build:
+    commands:
+      - mkdir lib
+      - >
+        cp ${LIBS}/libEGL.so.1
+        ${LIBS}/libGL.so.1
+        ${LIBS}/libGLX.so.0
+        ${LIBS}/libGLdispatch.so.0
+        ${LIBS}/libICE.so.6
+        ${LIBS}/libSM.so.6
+        ${LIBS}/libX11.so.6
+        ${LIBS}/libXau.so.6
+        ${LIBS}/libXext.so.6
+        ${LIBS}/libXrender.so.1
+        ${LIBS}/libblkid.so.1
+        ${LIBS}/libbz2.so.1
+        ${LIBS}/libcairo.so.2
+        ${LIBS}/libcroco-0.6.so.3
+        ${LIBS}/libexpat.so.1
+        ${LIBS}/libfontconfig.so.1
+        ${LIBS}/libfreetype.so.6
+        ${LIBS}/libfribidi.so.0
+        ${LIBS}/libgdk_pixbuf-2.0.so.0
+        ${LIBS}/libgif.so.4
+        ${LIBS}/libgio-2.0.so.0
+        ${LIBS}/libglib-2.0.so.0
+        ${LIBS}/libgmodule-2.0.so.0
+        ${LIBS}/libgobject-2.0.so.0
+        ${LIBS}/libgraphite2.so.3
+        ${LIBS}/libgthread-2.0.so.0
+        ${LIBS}/libharfbuzz.so.0
+        ${LIBS}/libjpeg.so.62
+        ${LIBS}/liblzma.so.5
+        ${LIBS}/libmount.so.1
+        ${LIBS}/libpango-1.0.so.0
+        ${LIBS}/libpangocairo-1.0.so.0
+        ${LIBS}/libpangoft2-1.0.so.0
+        ${LIBS}/libpixman-1.so.0
+        ${LIBS}/libpng15.so.15
+        ${LIBS}/librsvg-2.so.2
+        ${LIBS}/libthai.so.0
+        ${LIBS}/libuuid.so.1
+        ${LIBS}/libxcb-render.so.0
+        ${LIBS}/libxcb-shm.so.0
+        ${LIBS}/libxcb.so.1
+        ${LIBS}/libxml2.so.2
+        lib/
+      - zip -r -9 "node${NODE_VERSION}_canvas_layer.zip" nodejs
+      - zip -r -9 "node_canvas_lib64_layer.zip" lib
+artifacts:
+  files: 
+    - "node${NODE_VERSION}_canvas_layer.zip"
+    - "node_canvas_lib64_layer.zip"

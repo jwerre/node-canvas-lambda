@@ -43,7 +43,7 @@ aws lambda publish-layer-version \
 
 ```
 
-## Build
+## Build - Docker
 
 The build script included in this repo will compile new layers and (optionally)
 uploaded them to AWS into your default region. Be sure to have Docker installed
@@ -52,3 +52,23 @@ then run the follwing command:
 ```zsh
 ./build.sh
 ```
+
+## Build - CodePipeline
+
+Instead of building locally using Docker, you can build the layer on Amazon itself:
+
+- Create a new CodeCommit repository, and push this repository to it.
+- Create a new S3 bucket with versioning enabled to hold the built layers
+- Create a new CodePipeline that sources from the CodeCommit repository, uses the latest version
+  of Amazon Linux 2, and deploys to the S3 bucket (tick the "extract file before deploy" box).
+
+When the pipeline completes you'll have "node_canvas_lib64_layer.zip" and "node14_canvas_layer.zip"
+files in your S3 bucket, ready to be downloaded and published as with the "AWS CLI" method.
+
+To change the version of Node to build for, or the version of Canvas to build, you can add environment 
+variables to the CodePipeline Build stage like so:
+
+NODE_VERSION: 14
+CANVAS_VERSION: v2.7.0
+
+The canvas version can be set to any git commit hash, branch, or tag [from the node-canvas repository](https://github.com/Automattic/node-canvas)
