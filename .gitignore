@@ -7,5 +7,6 @@ Icon?
 ehthumbs.db
 Thumbs.db
 
-layers.zip
-root
+build
+lib
+nodejs

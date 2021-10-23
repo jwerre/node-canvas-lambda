@@ -52,3 +52,16 @@ then run the follwing command:
 ```zsh
 ./build.sh
 ```
+
+## Debug
+
+The `docker-compose.yml` includes three services.
+* `layers` - This is used to build the layers by installing canvas in a lambci/lambda:build-nodejs12.x based environment and then using lddtree to collect the `so` file dependencies.
+* `lambda-test` - This is to test the layers using an lambci/lambda:nodejs12.x environment to load the layers and run a simple handler that uses canvas.
+* `lambda-build` - This can be used to debug the lambda environment using a lambci/lambda:build-nodejs12.x based environment with the layers loaded to replicate the lambda-test environment.
+
+To debug `so` import issues with the layers run `docker-compose run lambda-build bash` then use `ldd` or [lddtree](https://github.com/ncopa/lddtree) to examine `canvas.node`:
+
+```
+ldd /opt/nodejs/node_modules/canvas/build/Release/canvas.node
+```

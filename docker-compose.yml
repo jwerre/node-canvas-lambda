@@ -1,0 +1,29 @@
+version: '3'
+
+services:
+
+  layers:
+    build: .
+    environment:
+      - NODE_VERSION=12
+    volumes:
+      - ./:/out
+      - ./tmp/:/tmp/
+
+  lambda-test:
+    build:
+      context: test
+    volumes:
+      - ./test/:/var/task/
+      - ./lib/:/opt/lib/
+      - ./nodejs/:/opt/nodejs/
+
+  lambda-build:
+    build:
+      context: test
+      dockerfile: build.Dockerfile
+    volumes:
+      - ./test/:/var/task/
+      - ./lib/:/opt/lib/
+      - ./nodejs/:/opt/nodejs/
+      - ./tmp/:/tmp/
