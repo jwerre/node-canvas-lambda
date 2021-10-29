@@ -9,9 +9,10 @@ help:
 	@echo " make clean               -- Remove built layers"
 
 build:
-	docker-compose build --build-arg NODE_VERSION="${NODE_VERSION}" layers
+	docker build --build-arg NODE_VERSION="${NODE_VERSION}" \
+		--tag node${NODE_VERSION}-canvas-layers .
 	mkdir -p build
-	docker create -ti --name dummy node-canvas-lambda_layers bash
+	docker create -ti --name dummy node${NODE_VERSION}-canvas-layers bash
 	docker cp dummy:/root/layers/node${NODE_VERSION}_canvas_lib64_layer.zip build/
 	docker cp dummy:/root/layers/node${NODE_VERSION}_canvas_layer.zip build/
 	docker rm -f dummy
@@ -27,13 +28,24 @@ upload-lib:
 
 upload-nodejs:
 	aws lambda publish-layer-version \
-	--layer-name "node${NODE_VERSION}chartjsCanvas" \
+	--layer-name "node${NODE_VERSION}Canvas" \
 	--compatible-runtimes nodejs${NODE_VERSION}.x \
 	--zip-file "fileb://build/node${NODE_VERSION}_canvas_layer.zip" \
 	--description "A Lambda Layer which includes node canvas, chart.js, chartjs-node-canvas, chartjs-plugin-datalabels"
 
 lambda-test: unzip-layers
-	docker-compose run lambda-test handler.handler
+	docker run --rm \
+		--volume "$$(pwd)":/var/task:ro,delegated \
+		--volume "$$(pwd)/lib":/opt/lib:ro,delegated \
+		--volume "$$(pwd)/nodejs":/opt/nodejs:ro,delegated \
+		lambci/lambda:nodejs${NODE_VERSION}.x test.handler
+
+lambda-test-bash: unzip-layers
+	docker run --rm -it \
+		--volume "$$(pwd)":/var/task \
+		--volume "$$(pwd)/lib":/opt/lib \
+		--volume "$$(pwd)/nodejs":/opt/nodejs \
+	  lambci/lambda:build-nodejs${NODE_VERSION}.x bash
 
 unzip-layers: build
 unzip-layers: nodejs

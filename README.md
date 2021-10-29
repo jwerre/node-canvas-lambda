@@ -45,23 +45,49 @@ aws lambda publish-layer-version \
 
 ## Build
 
-The build script included in this repo will compile new layers and (optionally)
-uploaded them to AWS into your default region. Be sure to have Docker installed
-then run the follwing command:
+Build new layers using the Dockerfile and copy them to the build folder.
+Be sure to have Docker installed then run the following command:
 
 ```zsh
-./build.sh
+make build
+```
+
+To build for a different node version set the `NODE_VERSION`:
+
+```zsh
+make build NODE_VERSION=10
+```
+
+## Upload
+
+Upload the layers to AWS into your default region. This will build the layers
+if they have not already been built.
+
+```zsh
+make upload-layers
+```
+
+## Test
+
+A lambda image (e.g. `lambci/lambda:nodejs12.x` ) can be used to test the layers
+by loading the layers and running a simple lambda handler that uses canvas.
+
+The following command will unzip the layers and mount the layer folders into to
+the `/opt/` folder of the lambda container and then run the `test.js` handler:
+
+```zsh
+make lambda-test
 ```
 
 ## Debug
 
-The `docker-compose.yml` includes three services.
-* `layers` - This is used to build the layers by installing canvas in a lambci/lambda:build-nodejs12.x based environment and then using lddtree to collect the `so` file dependencies.
-* `lambda-test` - This is to test the layers using an lambci/lambda:nodejs12.x environment to load the layers and run a simple handler that uses canvas.
-* `lambda-build` - This can be used to debug the lambda environment using a lambci/lambda:build-nodejs12.x based environment with the layers loaded to replicate the lambda-test environment.
+A lambda build image (e.g. `lambci/lambda:build-nodejs12.x`) can be used to
+debug any issues with the layers.
 
-To debug `so` import issues with the layers run `docker-compose run lambda-build bash` then use `ldd` or [lddtree](https://github.com/ncopa/lddtree) to examine `canvas.node`:
+Use `make lambda-test-bash` to start an interactive bash session in a lambda
+container where you can use `ldd` or [lddtree](https://github.com/ncopa/lddtree)
+to examine the `canvas.node` binary:
 
-```
+```zsh
 ldd /opt/nodejs/node_modules/canvas/build/Release/canvas.node
 ```
