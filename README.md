@@ -4,13 +4,13 @@ A node-canvas (and chart.js) layer for AWS Lambda
 
 ## Install
 
-*Note:* 
+_Note:_
 If you're not using Node.js version 12 then you'll need to recompile the layers.
 See the Build section below. Also, these layers include chart.js. If you don't
-want these modules included you can remove them from the Dockerfile (around line
-19) and rebuild the layers.
+want these modules included you can remove them from the Dockerfile (around line 19) and rebuild the layers.
 
 ### AWS Console
+
 1.  Clone the repository
 1.  Log into AWS console and navigate to Lambda service
 1.  Click **Layers** in the sidebar
@@ -23,7 +23,7 @@ want these modules included you can remove them from the Dockerfile (around line
 1.  Click **Layers** in the Designer panel
 1.  In the Layers panel click **Add a layer**.
 1.  Choose **Select from list of runtime compatible layers**, select the layer
-Name and Version and click **Add**.
+    Name and Version and click **Add**.
 
 ### AWS CLI
 
@@ -52,3 +52,9 @@ then run the follwing command:
 ```zsh
 ./build.sh
 ```
+
+## igara comment
+
+monorepo project
+
+see https://github.com/igara/syonet_eight
