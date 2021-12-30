@@ -9,3 +9,5 @@ Thumbs.db
 
 layers.zip
 root
+node*_canvas*.zip
+.serverless

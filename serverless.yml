@@ -1,0 +1,20 @@
+service: node-canvas-lambda
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  memorySize: 128
+  region: us-east-1
+  profile: default
+  stage: ${opt:stage, 'development'}
+
+layers:
+  lib:
+    path: root/layers/lib
+    name: node-canvas-libs-lambda-layer
+    description: 'node-canvas used libs'
+
+  nodemodule:
+    path: root/layers/nodejs
+    name: node-canvas-node-modules-lambda-layer
+    description: 'node-canvas other node modules'

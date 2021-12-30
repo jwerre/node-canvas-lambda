@@ -2,7 +2,7 @@ FROM amazonlinux:latest
 
 ARG LIBS=/usr/lib64
 ARG OUT=/root/layers
-ARG NODE_VERSION=12
+ARG NODE_VERSION=14
 
 # set up container
 RUN yum -y update \
