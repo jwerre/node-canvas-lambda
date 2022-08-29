@@ -16,7 +16,7 @@ RUN node --version
 # will be created and become working dir
 WORKDIR $OUT/nodejs
 
-RUN npm install canvas@next \
+RUN npm install canvas \
 chartjs-plugin-datalabels \
 chartjs-node-canvas \
 chart.js --build-from-source
