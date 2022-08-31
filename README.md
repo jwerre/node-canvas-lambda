@@ -52,10 +52,11 @@ Be sure to have Docker installed then run the following command:
 make build
 ```
 
-To build for a different node version set the `NODE_VERSION`:
+The default version of node is 16. To build for a different node version set
+the `NODE_VERSION`:
 
 ```zsh
-make build NODE_VERSION=10
+make build NODE_VERSION=14
 ```
 
 ## Upload

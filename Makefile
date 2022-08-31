@@ -1,11 +1,12 @@
-NODE_VERSION=12
+NODE_VERSION=16
+TEST_IMG_NAME=canvas-lambda-test
 
 help:
 	@echo "Usage:"
 	@echo " make help                -- display this help"
 	@echo " make build               -- Build the layers using docker"
-	@echo " make upload-layers       -- Upload the layer to AWS"
-	@echo " make lambda-tests        -- Test the layers in lambda docker"
+	@echo " make publish             -- Upload the layer to AWS"
+	@echo " make test                -- Test the layers in lambda docker"
 	@echo " make clean               -- Remove built layers"
 
 build:
@@ -17,35 +18,56 @@ build:
 	docker cp dummy:/root/layers/node${NODE_VERSION}_canvas_layer.zip build/
 	docker rm -f dummy
 
-upload-layers: build upload-lib upload-nodejs
-
-upload-lib:
+publish-lib:
 	aws lambda publish-layer-version \
 	--layer-name "node${NODE_VERSION}CanvasLib64" \
 	--compatible-runtimes nodejs${NODE_VERSION}.x \
 	--zip-file "fileb://build/node${NODE_VERSION}_canvas_lib64_layer.zip" \
 	--description "Node canvas lib 64"
 
-upload-nodejs:
+publish-nodejs:
 	aws lambda publish-layer-version \
 	--layer-name "node${NODE_VERSION}Canvas" \
 	--compatible-runtimes nodejs${NODE_VERSION}.x \
 	--zip-file "fileb://build/node${NODE_VERSION}_canvas_layer.zip" \
 	--description "A Lambda Layer which includes node canvas, chart.js, chartjs-node-canvas, chartjs-plugin-datalabels"
 
-lambda-test: unzip-layers
-	docker run --rm \
-		--volume "$$(pwd)":/var/task:ro,delegated \
-		--volume "$$(pwd)/lib":/opt/lib:ro,delegated \
-		--volume "$$(pwd)/nodejs":/opt/nodejs:ro,delegated \
-		lambci/lambda:nodejs${NODE_VERSION}.x test.handler
+publish: build publish-lib publish-nodejs
 
-lambda-test-bash: unzip-layers
-	docker run --rm -it \
-		--volume "$$(pwd)":/var/task \
-		--volume "$$(pwd)/lib":/opt/lib \
-		--volume "$$(pwd)/nodejs":/opt/nodejs \
-	  lambci/lambda:build-nodejs${NODE_VERSION}.x bash
+
+# This doesn't work for some reason. It would be nice to use this instead of the 
+# test cmd below then we wouldn't need `test.dockerfile`
+# docker run -p 9564:8080 --rm -d \
+# 	--name ${TEST_IMG_NAME} \
+# 	--volume "$$(pwd)":/var/task:ro,delegated \
+# 	--volume "$$(pwd)/lib":/opt/lib:ro,delegated \
+# 	--volume "$$(pwd)/nodejs":/opt/nodejs:ro,delegated \
+# 	public.ecr.aws/lambda/nodejs:16 \
+# 	test.handler
+
+test: unzip-layers
+
+	docker run \
+		-p 9564:8080 \
+		-d \
+		--rm \
+		--name ${TEST_IMG_NAME} \
+		$$( docker build \
+			--no-cache \
+			--build-arg NODE_VERSION=${NODE_VERSION} \
+			--file test.dockerfile \
+			-q \
+			. \
+		)
+
+	echo $$(curl \
+		-s \
+		-XPOST "http://localhost:9564/2015-03-31/functions/function/invocations" \
+		-d '{"message":"Test was successful!"}' \
+		| jq '.body' );
+
+	docker stop ${TEST_IMG_NAME}
+
 
 unzip-layers: build
 unzip-layers: nodejs

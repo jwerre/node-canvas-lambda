@@ -1,25 +1,33 @@
-ARG NODE_VERSION=12
-FROM lambci/lambda:build-nodejs${NODE_VERSION}.x
+FROM amazonlinux:latest
 
 ARG LIBS=/usr/lib64
 ARG OUT=/root/layers
-ARG NODE_VERSION=12
+ARG NODE_VERSION=16
 
 # set up container
 RUN yum -y update \
 && yum -y groupinstall "Development Tools" \
-&& yum install -y gcc-c++ cairo-devel libjpeg-turbo-devel pango-devel giflib-devel
-# && yum install -y nodejs cairo cairo-devel cairomm-devel libjpeg-turbo-devel pango pango-devel pangomm pangomm-devel giflib-devel
-
-RUN node --version
+&& curl --silent --location https://rpm.nodesource.com/setup_${NODE_VERSION}.x | bash - \
+&& yum install -y \
+	nodejs \
+	python37 \
+	which \
+	binutils \
+	sed \
+	gcc-c++ \
+	cairo-devel \
+	libjpeg-turbo-devel \
+	pango-devel \
+	giflib-devel
 
 # will be created and become working dir
 WORKDIR $OUT/nodejs
 
-RUN npm install canvas \
-chartjs-plugin-datalabels \
-chartjs-node-canvas \
-chart.js --build-from-source
+RUN npm install \
+canvas@2 \
+chartjs-plugin-datalabels@2 \
+chartjs-node-canvas@4 \
+chart.js@3 --build-from-source
 
 # will be created and become working dir
 WORKDIR $OUT/lib
