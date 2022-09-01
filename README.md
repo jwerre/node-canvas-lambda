@@ -53,12 +53,11 @@ need to checkout the `x86-64` branch and run `make build`.
 
 ## Debug
 
-A lambda build image (e.g. `lambci/lambda:build-nodejs12.x`) can be used to
-debug any issues with the layers.
+The build image can be used to debug any issues with the layers.
 
-Use `make debug` to start an interactive bash session in a lambda
-container where you can use `ldd` or [`lddtree`](https://github.com/ncopa/lddtree)
-to examine the `canvas.node` binary:
+Use `make debug` to start an interactive bash session in the container where you
+can use `ldd` or [`lddtree`](https://github.com/ncopa/lddtree) to examine the
+`canvas.node` binary:
 
 ```zsh
 ldd nodejs/node_modules/canvas/build/Release/canvas.node
