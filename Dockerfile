@@ -1,6 +1,5 @@
-FROM amazonlinux:latest
+FROM arm64v8/amazonlinux:latest
 
-ARG LIBS=/usr/lib64
 ARG OUT=/root/layers
 ARG NODE_VERSION=16
 
@@ -23,11 +22,11 @@ RUN yum -y update \
 # will be created and become working dir
 WORKDIR $OUT/nodejs
 
-RUN npm install \
+RUN npm install --build-from-source \
 canvas@2 \
 chartjs-plugin-datalabels@2 \
 chartjs-node-canvas@4 \
-chart.js@3 --build-from-source
+chart.js@3
 
 # will be created and become working dir
 WORKDIR $OUT/lib

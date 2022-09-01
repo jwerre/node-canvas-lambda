@@ -1,40 +1,64 @@
-const https = require('https');
-const fs = require('fs');
-const { createCanvas, registerFont } = require('canvas');
-const fontFamily = 'Krub';
+const { ChartJSNodeCanvas, ChartCallback } = require('chartjs-node-canvas');
 
-const downloadFont = (font) => {
-	const file = fs.createWriteStream(`./${font}.ttf`);
-	const fontUrl = `https://github.com/google/fonts/blob/main/ofl/${font.toLowerCase()}/${font}-Regular.ttf?raw=true`
+async function main() {
 
-	return new Promise( (resolve, reject) => {
+	const width = 400;
+	const height = 400;
+	const config = {
+		type: 'bar',
+		data: {
+			labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
+			datasets: [{
+				label: '# of Votes',
+				data: [12, 19, 3, 5, 2, 3],
+				backgroundColor: [
+					'rgba(255, 99, 132, 0.2)',
+					'rgba(54, 162, 235, 0.2)',
+					'rgba(255, 206, 86, 0.2)',
+					'rgba(75, 192, 192, 0.2)',
+					'rgba(153, 102, 255, 0.2)',
+					'rgba(255, 159, 64, 0.2)'
+				],
+				borderColor: [
+					'rgba(255,99,132,1)',
+					'rgba(54, 162, 235, 1)',
+					'rgba(255, 206, 86, 1)',
+					'rgba(75, 192, 192, 1)',
+					'rgba(153, 102, 255, 1)',
+					'rgba(255, 159, 64, 1)'
+				],
+				borderWidth: 1
+			}]
+		},
+		options: {},
+		plugins: [{
+			id: 'background-colour',
+			beforeDraw: (chart) => {
+				const ctx = chart.ctx;
+				ctx.save();
+				ctx.fillStyle = 'white';
+				ctx.fillRect(0, 0, width, height);
+				ctx.restore();
+			}
+		}]
+	};
 
-		file
-			.on('finish', resolve)
-			.on('error', reject );
+	// throw config
+	const chartCallback = (ChartJS) => {
+		ChartJS.defaults.responsive = true;
+		ChartJS.defaults.maintainAspectRatio = false;
+	};
+	const chartJSNodeCanvas = new ChartJSNodeCanvas({ width, height, chartCallback });
 
-		https.get(fontUrl, (response) =>{
-			response.pipe(file, {end:true})
-		});
-
-	});
+	return chartJSNodeCanvas.renderToDataURL(config);
 }
+
 
 exports.handler = async (event) => {
 
-	// download font from github
-	// await downloadFont(fontFamily)
-	// registerFont(`./${fontFamily}.ttf`, { family: fontFamily });
-
-	const canvas = createCanvas(400, 200)
-	const ctx = canvas.getContext('2d')
-
-	ctx.font = `30px ${fontFamily}`
-	ctx.fillText(event.message || 'OK!', 50, 100)
-
 	return {
 		statusCode: 200,
-		body: canvas.toDataURL(),
+		body: await main(),
 	};
 
 }

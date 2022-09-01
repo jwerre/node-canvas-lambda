@@ -2,46 +2,6 @@
 
 A node-canvas (and chart.js) layer for AWS Lambda
 
-## Install
-
-*Note:* 
-If you're not using Node.js version 12 then you'll need to recompile the layers.
-See the Build section below. Also, these layers include chart.js. If you don't
-want these modules included you can remove them from the Dockerfile (around line
-19) and rebuild the layers.
-
-### AWS Console
-1.  Clone the repository
-1.  Log into AWS console and navigate to Lambda service
-1.  Click **Layers** in the sidebar
-1.  Click **Create layer**
-1.  Give the layer a name, description and upload the `node12_canvas_layer.zip`
-1.  Click **Create**
-1.  Follow the previous 3 steps and create a layer for `node12_canvas-lib64-layer.zip`
-1.  Click **Functions** in the sidebar
-1.  Select your function in the function list
-1.  Click **Layers** in the Designer panel
-1.  In the Layers panel click **Add a layer**.
-1.  Choose **Select from list of runtime compatible layers**, select the layer
-Name and Version and click **Add**.
-
-### AWS CLI
-
-Clone the repository and follow the steps below.
-
-```zsh
-
-aws lambda publish-layer-version \
---layer-name "node12CanvasLib64" \
---zip-file "fileb://node12_canvas_lib64_layer.zip" \
---description "Node canvas lib 64"
-
-aws lambda publish-layer-version \
---layer-name "node12Canvas" \
---zip-file "fileb://node12_canvas_layer.zip" \
---description "A Lambda Layer which includes node canvas, chart.js, chartjs-node-canvas, chartjs-plugin-datalabels"
-
-```
 
 ## Build
 
@@ -52,43 +12,54 @@ Be sure to have Docker installed then run the following command:
 make build
 ```
 
-The default version of node is 16. To build for a different node version set
+The default version of Nodejs is 16. To build for a different node version set
 the `NODE_VERSION`:
 
 ```zsh
 make build NODE_VERSION=14
 ```
 
-## Upload
+## Publish
 
 Upload the layers to AWS into your default region. This will build the layers
 if they have not already been built.
 
 ```zsh
-make upload-layers
+make publish
 ```
 
 ## Test
 
-A lambda image (e.g. `lambci/lambda:nodejs12.x` ) can be used to test the layers
-by loading the layers and running a simple lambda handler that uses canvas.
+A lambda image (e.g. `public.ecr.aws/lambda/nodejs:16-arm64` ) can be used to
+test the layers by loading the layers and running a simple lambda handler that
+uses canvas.
 
 The following command will unzip the layers and mount the layer folders into to
 the `/opt/` folder of the lambda container and then run the `test.js` handler:
 
 ```zsh
-make lambda-test
+make test
 ```
+
+If the test worked correctly the output should be a data URI.
+e.g.: `"data:image/png;base64,iVBORw0KGgoAAAA...`. You can copy the URI and
+paste it into our browser's url bar to see the image.
+
+## Architecture
+
+**The default architecture for these layers are ARM**. If you're function uses
+amd64 architecute you shouldn't have any issues. If you're using `x86-64` you'll
+need to checkout the `x86-64` branch and run `make build`.
 
 ## Debug
 
 A lambda build image (e.g. `lambci/lambda:build-nodejs12.x`) can be used to
 debug any issues with the layers.
 
-Use `make lambda-test-bash` to start an interactive bash session in a lambda
-container where you can use `ldd` or [lddtree](https://github.com/ncopa/lddtree)
+Use `make debug` to start an interactive bash session in a lambda
+container where you can use `ldd` or [`lddtree`](https://github.com/ncopa/lddtree)
 to examine the `canvas.node` binary:
 
 ```zsh
-ldd /opt/nodejs/node_modules/canvas/build/Release/canvas.node
+ldd nodejs/node_modules/canvas/build/Release/canvas.node
 ```
